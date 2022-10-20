@@ -62,7 +62,7 @@ def draw(draw_info, sorting_algo_name, ascending):
     draw_info.window.blit(controls, (draw_info.width/2 - controls.get_width()/2, 40))
 
     # implement more sorting algos 
-    sorting = draw_info.FONT.render("I - Insertion Sort | B - Bubble Sort | S - Selection Sort | Q - R-Quick Sort | M - Merge Sort", 1, draw_info.WHITE)
+    sorting = draw_info.FONT.render("I - Insertion Sort | B - Bubble Sort | S - Selection Sort | Q - R-Quick Sort | M - Merge Sort | H - Heap Sort", 1, draw_info.WHITE)
     draw_info.window.blit(sorting, (draw_info.width/2 - sorting.get_width()/2, 70))
 
     draw_list(draw_info)
@@ -161,6 +161,7 @@ def partition(lst, beg, end, pivot, draw_info, ascending):
 
     lst[new_piv+1], lst[end] = lst[end], lst[new_piv+1]
     return (new_piv+1)
+
 def quick_sort(lst, beg, end, draw_info, ascending):
     if beg < end:
         pivot = random.randint(beg, end)
@@ -169,6 +170,7 @@ def quick_sort(lst, beg, end, draw_info, ascending):
         p = partition(lst, beg, end, pivot, draw_info, ascending)
         quick_sort(lst, beg, p-1, draw_info, ascending)
         quick_sort(lst, p+1, end, draw_info, ascending)
+
 def qs_start(draw_info, ascending=True):
     lst = draw_info.lst
     quick_sort(lst, 0, len(lst)-1, draw_info, ascending)
@@ -199,9 +201,46 @@ def merge_sort(lst, draw_info, ascending):
             lst[k] = left[i]
             i += 1
             k += 1
+
 def ms_start(draw_info, ascending=True):
     lst = draw_info.lst
     merge_sort(lst, draw_info, ascending=True)
+
+def heapify(lst, N, i, draw_info, ascending):
+    largest = i
+    left = 2 * i + 1
+    right = 2 * i + 2
+    if (left < N and lst[largest] < lst[left] and ascending) or (left < N and lst[largest] > lst[left] and not ascending):
+        largest = left
+    if (right < N and lst[largest] < lst[right] and ascending) or (right < N and lst[largest] > lst[right] and not ascending):
+        largest = right
+    if largest != i:
+        lst[i], lst[largest] = lst[largest], lst[i]
+        if ascending:
+            heapify(lst, N, largest, draw_info, ascending=True)
+        else:
+             heapify(lst, N, largest, draw_info, ascending=False)
+    draw_list(draw_info, {i: draw_info.GREEN, largest: draw_info.RED}, True)
+
+def heap_sort(lst, draw_info, ascending):
+    N = len(lst)
+    for i in range(N//2 - 1, -1, -1):
+        if ascending:
+            heapify(lst, N, i, draw_info, ascending=True)
+        else:
+            heapify(lst, N, i, draw_info, ascending=False)
+    for i in range(N-1, 0, -1):
+        lst[i], lst[0] = lst[0], lst[i]
+        if ascending:
+            heapify(lst, i, 0, draw_info, ascending=True)
+        else:
+            heapify(lst, i, 0, draw_info, ascending=False)
+
+def hs_start(draw_info, ascending=True):
+    lst = draw_info.lst
+    heap_sort(lst, draw_info, ascending)
+    yield True
+    return lst
 
 # render screen and interactable buttons and then start drawing the list
 def main():
@@ -271,6 +310,9 @@ def main():
             elif event.key == pygame.K_m and not sorting:
                 sorting_algorithm = qs_start
                 sorting_algo_name = "O(nlogn) Merge Sort"
+            elif event.key == pygame.K_h and not sorting:
+                sorting_algorithm = hs_start
+                sorting_algo_name = "O(nlogn) Heap Sort"
             elif event.key == pygame.K_1 and not sorting:
                 fps = 15
             elif event.key == pygame.K_2 and not sorting:
